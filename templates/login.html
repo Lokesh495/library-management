@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .toggle-btns button {
+      min-width: 120px;
+    }
+    .toggle-btns button.active {
+      background-color: #0d6efd;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-5" style="max-width: 400px;">
+    <h3 class="mb-4 text-center">Login</h3>
+
+    <div class="d-flex justify-content-center mb-4 toggle-btns">
+      <button type="button" id="adminBtn" class="btn btn-outline-primary me-2 active">Admin Login</button>
+      <button type="button" id="studentBtn" class="btn btn-outline-primary">Student Login</button>
+    </div>
+
+    <form id="loginForm">
+      <!-- Admin fields -->
+      <div id="adminFields">
+        <div class="mb-3">
+          <input type="text" class="form-control" name="username" placeholder="Admin Username" required />
+        </div>
+        <div class="mb-3">
+          <input type="password" class="form-control" name="password" placeholder="Password" required />
+        </div>
+      </div>
+
+      <!-- Student fields -->
+      <div id="studentFields" style="display:none;">
+        <div class="mb-3">
+          <input type="text" class="form-control" name="student_name" placeholder="Student Name" required />
+        </div>
+        <div class="mb-3">
+          <input type="email" class="form-control" name="student_email" placeholder="Email" required />
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">Login</button>
+    </form>
+  </div>
+
+<script>
+  const adminBtn = document.getElementById('adminBtn');
+  const studentBtn = document.getElementById('studentBtn');
+  const adminFields = document.getElementById('adminFields');
+  const studentFields = document.getElementById('studentFields');
+
+  function toggleFields() {
+    if (adminFields.style.display === 'block') {
+      // Enable admin inputs and require them
+      adminFields.querySelectorAll('input').forEach(input => {
+        input.disabled = false;
+        input.required = true;
+      });
+      // Disable student inputs and remove required
+      studentFields.querySelectorAll('input').forEach(input => {
+        input.disabled = true;
+        input.required = false;
+        input.value = '';  // Clear to avoid confusion
+      });
+    } else {
+      // Enable student inputs and require them
+      studentFields.querySelectorAll('input').forEach(input => {
+        input.disabled = false;
+        input.required = true;
+      });
+      // Disable admin inputs and remove required
+      adminFields.querySelectorAll('input').forEach(input => {
+        input.disabled = true;
+        input.required = false;
+        input.value = '';  // Clear to avoid confusion
+      });
+    }
+  }
+
+  adminBtn.addEventListener('click', () => {
+    adminBtn.classList.add('active');
+    studentBtn.classList.remove('active');
+    adminFields.style.display = 'block';
+    studentFields.style.display = 'none';
+    toggleFields();
+  });
+
+  studentBtn.addEventListener('click', () => {
+    studentBtn.classList.add('active');
+    adminBtn.classList.remove('active');
+    studentFields.style.display = 'block';
+    adminFields.style.display = 'none';
+    toggleFields();
+  });
+
+  document.getElementById("loginForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    toggleFields(); // ensure correct disabling/enabling before submit
+
+    // Determine user type based on visible fields
+    const user_type = adminFields.style.display === 'block' ? 'admin' : 'student';
+
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+    data.user_type = user_type;
+
+    try {
+      const res = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        if (result.redirect) {
+          window.location.href = result.redirect;
+        } else if (user_type === "admin") {
+          window.location.href = "/admin/dashboard";
+        } else {
+          window.location.href = "/student/dashboard";
+        }
+      } else {
+        alert(result.error || "Login failed");
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
+      alert("Network or server error");
+    }
+  });
+
+  // Initialize properly on page load
+  toggleFields();
+</script>
+
+</body>
+</html>

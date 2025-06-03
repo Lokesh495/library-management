@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Issued Books</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    .overdue {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<div class="container mt-5">
+  <h2 class="mb-4">Issued Books</h2>
+  {% if books %}
+  <table class="table table-bordered table-striped">
+    <thead class="table-dark">
+      <tr>
+        <th>Book Title</th>
+        <th>Student</th>
+        <th>Issue Date</th>
+        <th>Return Date</th>
+        <th>Penalty (₹)</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for book in books %}
+      <tr>
+        <td>{{ book.title }}</td>
+        <td>{{ book.user }}</td>
+        <td>{{ book.issue_date }}</td>
+        <td>
+          {% if book.is_overdue and not book.is_returned %}
+            <span class="overdue">{{ book.return_date }}</span>
+          {% else %}
+            {{ book.return_date }}
+          {% endif %}
+        </td>
+        <td>{{ book.penalty }}</td>
+        <td>
+          {% if book.is_returned %}
+            ✅ Returned
+          {% else %}
+            ❌ Not Returned
+          {% endif %}
+        </td>
+        <td>
+          {% if not book.is_returned %}
+          <form action="/admin/confirm_return/{{ book['id'] }}" method="POST">
+            <button class="btn btn-success btn-sm">Confirm Return</button>
+          </form>
+          {% else %}
+          <button class="btn btn-secondary btn-sm" disabled>Returned</button>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <div class="alert alert-warning">No issued books to display.</div>
+  {% endif %}
+</div>
+</body>
+</html>
